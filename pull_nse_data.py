@@ -14,7 +14,7 @@ sectors = [
     'niftymidsmallhealthcare_','niftymidsmallitAndtelecom_'
 ]
 
-def download_sector_csv(index_name):
+def download_sector_csv(index_name, output_dir):
     # Standard URL pattern for Nifty Indices CSVs
     url = f"https://www.niftyindices.com/IndexConstituent/ind_{index_name}list.csv"
     
@@ -24,21 +24,26 @@ def download_sector_csv(index_name):
     }
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200:
             df = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
             filename = f"{index_name}_constituents.csv"
-            df.to_csv(filename, index=False)
+            filepath = os.path.join(output_dir, filename)
+            df.to_csv(filepath, index=False)
             print(f"Successfully downloaded: {filename}")
         else:
             print(f"Failed to download {index_name}: Status Code {response.status_code}")
     except Exception as e:
         print(f"Error downloading {index_name}: {e}")
 
-# Create a folder for downloads
-if not os.path.exists('nse_sectors'):
-    os.makedirs('nse_sectors')
-os.chdir('nse_sectors')
+def main():
+    output_dir = 'nse_sectors'
+    # Create a folder for downloads
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-for sector in sectors:
-    download_sector_csv(sector)
+    for sector in sectors:
+        download_sector_csv(sector, output_dir)
+
+if __name__ == '__main__':
+    main()
